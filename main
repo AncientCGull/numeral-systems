@@ -1,0 +1,764 @@
+#include <iostream>
+#include <cstring>
+#include <cmath>
+#include <iomanip>
+#include <vector>
+#include "randes.h"
+#include <fstream>
+#include <cstdio>
+#include <Windows.h>
+#include <bitset>
+#include <conio.h>
+#include <wincon.h>
+
+typedef std::vector <bool> str;
+HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+
+using namespace range;
+using namespace std;
+
+int choise;
+
+bool isError (char* a)
+{
+    MessageBox(NULL, a, "Error", MB_OK | MB_ICONSTOP);
+    system("cls");
+    return 0;
+}
+
+bool isStrComp(std::string &txt, std::string &tmi, std::string &tma)
+{
+    if (txt[0]=='-')
+    {
+        if (txt.length()>tmi.length())
+            return 1;
+        if (txt.length()==tmi.length())
+            for (int i=0; i<tmi.length(); i++)
+            {
+                if (txt[i]<tmi[i])
+                    return 0;
+                if (txt[i]>tmi[i])
+                    return 1;
+                if (txt[i]==tmi[i]) continue;
+            }
+    }
+    else
+    {
+        if (txt.length()>tma.length())
+            return 1;
+        if (txt.length()==tma.length())
+            for (int i=0; i<tma.length(); i++)
+            {
+                if (txt[i]<tma[i])
+                    return 0;
+                if (txt[i]>tma[i])
+                    return 1;
+                if (txt[i]==tma[i]) continue;
+            }
+    }
+    return 0;
+}
+
+bool isSigned (){
+    system("cls");
+    std::cout << "Signed? (0/1)\n";
+    bool a;
+    std::cin >> a;
+    return a;
+}
+
+int setSysOfCalk() {
+    system("cls");
+    int choise;
+    std::cout << "Choose system of calculation\n";
+    std::cin >> choise;
+    cout << "Enter number:";
+    return choise;
+}
+
+template <typename T>
+bool convert(std::string valueIn, int sys, T &valueOut){
+    if ((sys > 62) || (sys < 2))
+        return isError("No such system. Try again.\n");
+
+    int toPoint = 0, sign = 1;
+
+    if ('-' == valueIn[0]) {
+        valueIn.erase(valueIn.begin());
+        sign *= -1;
+    }
+
+    if (10 >= sys) {
+        for (int i = 0; i < valueIn.length(); i++)
+            if (valueIn[i] - '0' >= sys)
+                return isError("Wrong type of number.\n");
+    }
+    if (sys > 10 && sys <= 36) {
+        for (int i = 0; i < valueIn.length(); i++)
+            if (valueIn[i] - '7' >= sys)
+                return isError("Wrong type of number.\n");
+    }
+    if (sys < 63 && sys > 36)  {
+        for (int i = 0; i < valueIn.length(); i++)
+            if (valueIn[i] - '=' >= sys)
+                return isError("Wrong type of number.\n");
+    }
+
+    while (('.' != valueIn[toPoint]) && ('\0' != valueIn[toPoint]))
+        toPoint++;
+
+    for (int i = 0; i < toPoint; i++) {
+        if ((valueIn[i] >= '0') && (valueIn[i] <= '9'))
+            valueOut += (T) (valueIn[i] - '0') * pow(sys, toPoint - i - 1);
+        if ((valueIn[i] >= 'A') && (valueIn[i] <= 'Z'))
+            valueOut += (T) (valueIn[toPoint - i - 1] - '7') * pow(sys, toPoint - i - 1);
+        if ((valueIn[i] >= 'a') && (valueIn[i] <= 'z'))
+            valueOut += (T) (valueIn[toPoint - i - 1] - '=') * pow(sys, toPoint - i - 1);
+    }
+
+    if (valueIn.length() - toPoint > 1){
+        for (int i = toPoint; i < valueIn.length(); i++) {
+            if ((valueIn[i] >= '0') && (valueIn[i] <= '9'))
+                valueOut += (T) (valueIn[i] - '0') * pow(sys, toPoint - i);
+            if ((valueIn[i] >= 'A') && (valueIn[i] <= 'Z'))
+                valueOut += (T) (valueIn[i] - '7') * pow(sys, toPoint - i);
+            if ((valueIn[i] >= 'a') && (valueIn[i] <= 'z'))
+                valueOut += (T) (valueIn[i] - '=') * pow(sys, toPoint - i);
+        }
+    }
+
+    valueOut *= sign;
+    return 1;
+}
+
+template <typename T>
+str invert (str root, bool &check) {
+    system("cls");
+    std::cout << "Choose form of inverting bits:\n";
+    std::cout << "1 - Nums only\n";
+    std::cout << "2 - Quantity only\n";
+    std::cout << "3 - Nums + quantity\n";
+    std::cout << "Other - I do not want to change bits\n";
+    int choise = 0;
+    std::cin >> choise;
+    str code = root;
+
+    int i = 0;
+    int n;
+    switch (choise) {
+        case (1) : {
+            std::cout << "Enter numbers of bits u do not want to change (-1 - end)\n";
+            while (true) {
+                std::cin >> i;
+                if (-1 != i) {
+                    if (i < code.size() && i > -2) {
+                        n = sizeof(T)*8 - 1 - i;
+                        code.at(n) = !code.at(n);
+                    }
+                    else {
+                        check = isError("Wrong number! Try again.\n");
+                        return code;
+                    }
+                }
+                else break;
+            }
+            break;
+        }
+
+        case (2) : {
+            std::cout << "Enter quatity of bits u do not want to change (from begin)\n";
+            std::cin >> i;
+            int j = 0;
+            if (i < code.size() && i >= 0)
+            for (; j < i; j++) {
+                n = sizeof(T) * 8 - 1 - j;
+                code.at(n) = !code.at(n);
+            }
+            else {
+                check = isError("Wrong number! Try again.\n");
+                return code;
+            }
+            break;
+        }
+
+        case (3) : {
+            std::cout << "Enter quatity and numbers of bits u do not want to change\n";
+            int num;
+            std:: cin >> num;
+
+            while (num != 0) {
+                std::cin >> i;
+                if (i < code.size() && i >= 0) {
+                    n = sizeof(T) * 8 - i - 1;
+                    code.at(n) = !code.at(n);
+                }
+                else {
+                    check = isError("Wrong number! Try again.\n");
+                    return code;
+                }
+                i--;
+            }
+            break;
+        }
+
+        default:
+            return code;
+    }
+
+    for (i = 0; i < code.size(); i++)
+        code.at(i) = !code.at(i);
+
+    return code;
+}
+
+template <typename T>
+T fromBin1 (str &code) {
+    FILE *f;
+
+    const char* name = "1.txt";
+    f = fopen (name, "wb");
+    std::bitset<8> TempBits;
+    int h;
+    for (int i=sizeof(T)-1;i>=0;i--)
+    {
+        for (int j=0;j<8;j++)
+        {
+            h=(code[i*8+j])%2;
+            TempBits[7-j]=h;
+        }
+        fwrite(&TempBits, 1, 1, f);
+    }
+    fclose(f);
+    f = fopen (name, "rb");
+    T value[1];
+    fread(&value, sizeof(T), 1, f);
+    fclose(f);
+
+    return value[0];
+}
+
+void setColor (int &back, int &fore) {
+    system("cls");
+    cout << "Choose color of text:\n";
+    cout << "0 - Black\n";
+    cout << "1 - Blue\n";
+    cout << "2 - Green\n";
+    cout << "3 - Turquoise\n";
+    cout << "4 - Red\n";
+    cout << "5 - Purple\n";
+    cout << "6 - Beige\n";
+    cout << "7 - Milk\n";
+    cout << "8 - Grey\n";
+    cout << "9 - Azure\n";
+    cout << "10 - Light green\n";
+    cout << "11 - Light turquoise\n";
+    cout << "12 - Light red\n";
+    cout << "13 - Light pink\n";
+    cout << "14 - Light yellow\n";
+    cout << "15 - White\n";
+    cout << "Foreground: ";
+    cin >> fore;
+    cout << "Background: ";
+    cin >> back;
+}
+
+void gotoxy(int x, int y, int i, bool IsLeft)
+{
+    COORD coord ={x,y};
+    CHAR_INFO chi;
+    chi.Char.AsciiChar=' ';
+    chi.Attributes=(WORD)((0<<4)|7);
+    SMALL_RECT mov;
+    mov={coord.X,coord.Y,coord.X + i*8-1,coord.Y};
+    if (IsLeft)
+        coord ={x+1,y};
+    else
+        coord ={x-1,y};
+    ScrollConsoleScreenBuffer(GetStdHandle(STD_OUTPUT_HANDLE), &mov, NULL, coord, &chi);
+}
+
+template <typename T>
+bool getBinCode (T inValue, str root)
+{
+    bool check = 0;
+    str code;
+    string binCode;
+    std::cout << inValue << std::endl;
+    int i, j;
+    if (sizeof(T) > 8)
+        j = 9;
+    else
+        j = sizeof(T) - 1;
+    for (i = j; i >= 0; --i) {
+        uint8_t byte = reinterpret_cast<uint8_t *>(&inValue)[i];
+        for (int bit = 7; bit >= 0; --bit) {
+            code.push_back((bool)(byte >> bit & 0x1));
+            std::cout << (char)('0' + (byte >> bit & 0x1));
+        }
+        std::cout << " ";
+    }
+    std::cout << "\n";
+
+    for (i = 0; i < (j+1) * 8 ; i++)
+        binCode += ((code.at(i) + '0'));
+
+    const char* bin = binCode.c_str();
+    int x;
+    system("cls");
+    printf("%s", bin);
+    while (1) {
+        for (x = 0; x < 80-binCode.length(); ++x) {
+            gotoxy(x, 0, binCode.length(), 1);
+            Sleep(41);
+            if (kbhit())
+                break;
+        }
+        if (kbhit())
+            break;
+
+        for (; x > 0; --x) {
+            gotoxy(x , 0, binCode.length(), 0);
+            Sleep(42);
+            if (kbhit())
+                break;
+        }
+        if (kbhit())
+            break;
+    }
+    cout << endl;
+    system("pause");
+
+    do {
+        root = invert<T>(code, check);
+    } while (check);
+
+    int back = 0, fore = 7;
+    if (code != root)
+        setColor(back, fore);
+
+
+    for (i = 0; i < code.size(); i++) {
+        if (code.at(i) == root.at(i))
+            SetConsoleTextAttribute(hConsole, (WORD) ((back << 4) | fore));
+        std::cout << root.at(i);
+        SetConsoleTextAttribute(hConsole, (WORD) ((0 << 4) | 7));
+    }
+
+    if (choise > 5)
+        cout << std::fixed << std::setprecision(15);
+    std::cout << std::endl <<  fromBin1<T>(root) << std::endl;
+    return 1;
+}
+
+bool chooseType (bool &check, str &code) {
+    do {
+        system("cls");
+        std::cout << "Choose type\n";
+        std::cout << "1 - char\n";
+        std::cout << "2 - short\n";
+        std::cout << "3 - int\n";
+        std::cout << "4 - long\n";
+        std::cout << "5 - long long\n";
+        std::cout << "6 - float\n";
+        std::cout << "7 - double\n";
+        std::cout << "8 - long double\n";
+        std::cout << "0 - Exit\n";
+
+        std::string inValue;
+
+        std::cin >> choise;
+        switch (choise) {
+
+            case (1): {
+                if (isSigned()) {
+                    char a;
+                    std::cin >> a;
+                    if ((a > -128) && (a < 127))
+                        check = getBinCode(a, code);
+                    else check = isError("Wrong symbol.\n");
+                }
+                else
+                {
+                    unsigned char a;
+                    std::cin >> a;
+                    if ((a > 0) && (a < 255))
+                        check = getBinCode(a, code);
+                    else check = isError("Wrong symbol.\n");
+                }
+                break;
+            }
+
+            case (2): {
+                short valueShort = 0;
+                int sys = setSysOfCalk();
+                switch (sys) {
+                    case (8): {
+                        if (!isSigned()) {
+                            std::cin >> inValue;
+                            if (!isStrComp(inValue, minU, maxUShort8)) {
+                                if (convert<short >(inValue, 8, valueShort))
+                                    check = getBinCode(valueShort, code);
+                            } else check = isError("Out of range.\n");
+                        }
+                        else {
+                            std::cin >> inValue;
+                            if (!isStrComp(inValue, minShort8, maxShort8)) {
+                                if (convert<short>(inValue, 8, valueShort))
+                                    check = getBinCode(valueShort, code);
+                            }
+                            else check = isError("Out of range.\n");
+                        }
+                        break;
+                    }
+                    case (10): {
+                        if (isSigned()) {
+                            std::cin >> inValue;
+                            if (!isStrComp(inValue, minShort10, maxShort10)) {
+                                valueShort = (short) atoi(inValue.c_str());
+                                check = getBinCode(valueShort, code);
+                            } else check = isError("Out of range.\n");
+                        }
+                        else {
+                            std::cin >> inValue;
+                            if (!isStrComp(inValue, minU, maxUShort10)) {
+                                valueShort = (short) atoi(inValue.c_str());
+                                check = getBinCode(valueShort, code);
+                            }
+                            else check = isError("Out of range.\n");
+                        }
+                        break;
+                    }
+                    case (16): {
+                        if (isSigned()) {
+                            std::cin >> inValue;
+                            if (!isStrComp(inValue, minShort16, maxShort16)) {
+                                if (convert<short >(inValue, 16, valueShort)) {
+                                    check = getBinCode(valueShort, code);
+                                }
+                            }
+                            else check = isError("Out of range.\n");
+                        }
+                        else {
+                            std::cin >> inValue;
+                            if (!isStrComp(inValue, minU, maxUShort16)) {
+                                if (convert<short >(inValue, 16, valueShort)) {
+                                    check = getBinCode(valueShort, code);
+                                }
+                            }
+                            else check = isError("Out of range.\n");
+                        }
+                        break;
+                    }
+                    default: {
+                        std::cin >> inValue;
+                        if (convert<short >(inValue, sys, valueShort)) {
+                            check = getBinCode(valueShort, code);
+                        }
+                        break;
+                    }
+                }
+                break;
+            }
+
+            case (3): {
+                int valueInt = 0;
+                int sys = setSysOfCalk();
+                switch (sys) {
+                    case (8): {
+                        if (!isSigned()) {
+                            std::cin >> inValue;
+                            if (!isStrComp(inValue, minU, maxUInt8)) {
+                                if (convert<int >(inValue, 8, valueInt)) {
+                                    check = getBinCode(valueInt, code);
+                                }
+                            } else check = isError("Out of range.\n");
+                        }
+                        else {
+                            std::cin >> inValue;
+                            if (!isStrComp(inValue, minInt8, maxInt8))
+                            {
+                                if (convert<int >(inValue, 8, valueInt)) {
+                                    check = getBinCode(valueInt, code);
+                                }
+                            }
+                            else check = isError("Out of range.\n");
+                        }
+                        break;
+                    }
+                    case (10): {
+                        if (isSigned()) {
+                            std::cin >> inValue;
+                            if (!isStrComp(inValue, minInt10, maxInt10)) {
+                                valueInt =  atoi(inValue.c_str());
+                                check = getBinCode(valueInt, code);
+                            }
+                            else check = isError("Out of range.\n");
+                        }
+                        else {
+                            std::cin >> inValue;
+                            if (!isStrComp(inValue, minU, maxUInt10)) {
+                                valueInt =  atoi(inValue.c_str());
+                                check = getBinCode(valueInt, code);
+                            }
+                            else check = isError("Out of range.\n");
+                        }
+                        break;
+                    }
+                    case (16): {
+                        if (isSigned()) {
+                            std::cin >> inValue;
+                            if (!isStrComp(inValue, minInt16, maxInt16)) {
+                                if (convert<int >(inValue, 16, valueInt))
+                                    check = getBinCode(valueInt, code);
+                            }
+                            else check = isError("Out of range.\n");
+                        }
+                        else {
+                            std::cin >> inValue;
+                            if (!isStrComp(inValue, minU, maxUInt16)) {
+                                if (convert<int >(inValue, 16, valueInt))
+                                    check = getBinCode(valueInt, code);
+                            }
+                            else check = isError("Out of range.\n");
+                        }
+                        break;
+                    }
+
+                    default: {
+                        std::cin >> inValue;
+                        if (convert<int >(inValue, sys, valueInt))
+                            check = getBinCode(valueInt, code);
+                        break;
+                    }
+                }
+                break;
+            }
+
+            case (4): {
+                long valueLong = 0;
+                int sys = setSysOfCalk();
+                switch (sys) {
+                    case (8): {
+                        if (!isSigned()) {
+                            std::cin >> inValue;
+                            if (!isStrComp(inValue, minU, maxInt8)) {
+                                if (convert<long >(inValue, 8, valueLong))
+                                    check = getBinCode(valueLong, code);
+
+                            } else check = isError("Out of range.\n");
+                        }
+                        else {
+                            std::cin >> inValue;
+                            if (!isStrComp(inValue, minInt8, maxInt8)) {
+                                if (convert<long >(inValue, 8, valueLong))
+                                    check = getBinCode(valueLong, code);
+                            }
+                            else check = isError("Out of range.\n");
+                        }
+                        break;
+                    }
+                    case (10): {
+                        if (isSigned()) {
+                            std::cin >> inValue;
+                            if (!isStrComp(inValue, minInt10, maxInt10)) {
+                                valueLong = atol(inValue.c_str());
+                                check = getBinCode(valueLong, code);
+                            }
+                            else check = isError("Out of range.\n");
+                        }
+                        else {
+                            std::cin >> inValue;
+                            if (!isStrComp(inValue, minU, maxUInt10)) {
+                                valueLong = atol(inValue.c_str());
+                                check = getBinCode(valueLong, code);
+                            }
+                            else check = isError("Out of range.\n");
+                        }
+                        break;
+                    }
+                    case (16): {
+                        if (isSigned()) {
+                            std::cin >> inValue;
+                            if (!isStrComp(inValue, minInt16, maxInt16)) {
+                                if (convert<long >(inValue, 16, valueLong))
+                                    check = getBinCode(valueLong, code);
+                            }
+                            else check = isError("Out of range.\n");
+                        }
+                        else {
+                            std::cin >> inValue;
+                            if (!isStrComp(inValue, minU, maxUInt16)) {
+                                if (convert<long >(inValue, 16, valueLong))
+                                    check = getBinCode(valueLong, code);
+                            }
+                            else check = isError("Out of range.\n");
+                        }
+                        break;
+                    }
+
+                    default: {
+                        std::cin >> inValue;
+                        if (convert<long >(inValue, sys, valueLong))
+                            check = getBinCode(valueLong, code);
+                        break;
+                    }
+                }
+                break;
+            }
+
+            case (5): {
+                long long valueLong = 0;
+                int sys = setSysOfCalk();
+                switch (sys) {
+                    case (8): {
+                        if (!isSigned()) {
+                            std::cin >> inValue;
+                            if (!isStrComp(inValue, minU, maxULongLong8)) {
+                                if (convert<long long >(inValue, 8, valueLong))
+                                    check = getBinCode(valueLong, code);
+
+                            } else check = isError("Out of range.\n");
+                        } else {
+                            std::cin >> inValue;
+                            if (!isStrComp(inValue, minLongLong8, maxLongLong8)) {
+                                if (convert<long long >(inValue, 8, valueLong))
+                                    check = getBinCode(valueLong, code);
+                            } else check = isError("Out of range.\n");
+                        }
+                        break;
+                    }
+                    case (10): {
+                        if (isSigned()) {
+                            std::cin >> inValue;
+                            if (!isStrComp(inValue, minLongLong10, maxLongLong10)) {
+                                check = getBinCode(valueLong, code);
+                            } else check = isError("Out of range.\n");
+                        } else {
+                            std::cin >> inValue;
+                            if (!isStrComp(inValue, minU, maxULongLong10)) {
+                                valueLong = atol(inValue.c_str());
+                                check = getBinCode(valueLong, code);
+                            } else check = isError("Out of range.\n");
+                        }
+                        break;
+                    }
+                    case (16): {
+                        if (isSigned()) {
+                            std::cin >> inValue;
+                            if (!isStrComp(inValue, minLongLong16, maxLongLong16)) {
+                                if (convert<long long >(inValue, 16, valueLong))
+                                    check = getBinCode(valueLong, code);
+                            } else check = isError("Out of range.\n");
+                        } else {
+                            std::cin >> inValue;
+                            if (!isStrComp(inValue, minU, maxULongLong16)) {
+                                if (convert<long long >(inValue, 16, valueLong))
+                                    check = getBinCode(valueLong, code);
+                            } else check = isError("Out of range.\n");
+                        }
+                        break;
+                    }
+
+                    default: {
+                        std::cin >> inValue;
+                        if (convert<long long >(inValue, sys, valueLong))
+                            check = getBinCode(valueLong, code);
+                        break;
+                    }
+                }
+                break;
+            }
+
+            case (6): {
+                float valueFloat = 0;
+                int sys = setSysOfCalk();
+                std::cin >> inValue;
+                if (convert<float>(inValue, sys, valueFloat))
+                    check = getBinCode <float > (valueFloat, code);
+                break;
+            }
+
+            case (7): {
+                double valueDouble = 0;
+                int sys = setSysOfCalk();
+                std::cin >> inValue;
+                if (convert<double >(inValue, sys, valueDouble))
+                    check = getBinCode <double > (valueDouble, code);
+                break;
+            }
+
+            case (8): {
+                long double valueLongDouble = 0;
+                int sys = setSysOfCalk();
+                std::cin >> inValue;
+                if (convert<long double >(inValue, sys, valueLongDouble))
+                    check = getBinCode <long double > (valueLongDouble, code);
+                break;
+            }
+
+            case (0):
+                return 1;
+
+            default:
+                check = isError("No such option. Try again.\n");
+        }
+    } while (!check);
+}
+
+//void UI (bool &isNum, str& code, bool &check) {
+//    system("cls");
+//    cout << "Welcome!\nChoose lab:\n";
+//    cout << "1 - set number and get its binary code\n";
+//    if (isNum) {
+//        cout << "2 - change bits of number\n";
+//        cout << "3 - change color of unchanged bits\n";
+//        cout << "4 - move binary code\n";
+//        cout << "5 - draw curve\n";
+//    }
+//    else cout << "other operations have not opened yet\n";
+//    int choise;
+//    cin >> choise;
+//    str root;
+//    switch (choise) {
+//        case (1):
+//            chooseType(check, code);
+//            break;
+//        case (2):
+//            if (!isNum)
+//                isError("You can't choose that. Try again.");
+//            else {
+//                do {
+//                    root = invert(code, check);
+//                } while (check);
+//                for (int i = 0; i < root.size(); i++)
+//                    cout << root.at(i);
+//            }
+//        case (3):
+//            if (!isNum)
+//                isError("You can't choose that. Try again.");
+//            else {
+//                int back, fore;
+//                setColor(back, fore);
+//
+//                for (int i = 0; i < code.size(); i++) {
+//                    if (code.at(i) == root.at(i))
+//                        SetConsoleTextAttribute(hConsole, (WORD) ((back << 4) | fore));
+//                    std::cout << root.at(i);
+//                    SetConsoleTextAttribute(hConsole, (WORD) ((0 << 4) | 8));
+//                }
+//
+//                if (choise > 5)
+//                    cout << std::fixed << std::setprecision(15);
+//                std::cout << std::endl <<  fromBin1(root) << std::endl;
+//            }
+//    }
+//
+//}
+
+int main() {
+    str code;
+    bool check = 0;
+    chooseType(check, code);
+    system("pause");
+    return 1;
+}
