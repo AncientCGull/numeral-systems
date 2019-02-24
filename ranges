@@ -1,0 +1,40 @@
+namespace range {
+
+std::string minU = "0",
+        minShort10 = "-32768",
+        minShort8 = "-100000",
+        minShort16 = "-8000",
+
+        maxShort10 = "32767",
+        maxShort8 = "77777",
+        maxShort16 = "7FFF",
+
+        maxUShort10 = "65535",
+        maxUShort8 = "177777",
+        maxUShort16 = "FFFF",
+
+
+        minInt10 = "-2147483648",
+        minInt8 = "-20000000000",
+        minInt16 = "-800000000",
+
+        maxInt10 = "2147483647",
+        maxInt8 = "17777777777",
+        maxInt16 = "7FFFFFFF",
+
+        maxUInt10 = "4294967295",
+        maxUInt8 = "37777777777",
+        maxUInt16 = "FFFFFFFF",
+
+        minLongLong8 = "-777777777777777777777",
+        minLongLong10 = "–9223372036854775808",
+        minLongLong16 = "-7FFFFFFFFFFFFFFF",
+
+        maxLongLong8 = "1000000000000000000000",
+        maxLongLong10 = "9223372036854775807",
+        maxLongLong16 = "8000000000000000",
+
+        maxULongLong8 = "1777777777777777777777",
+        maxULongLong10 = "18446744073709551615",
+        maxULongLong16 = "FFFFFFFFFFFFFFFF";
+}
